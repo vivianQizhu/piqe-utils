@@ -12,7 +12,6 @@ of the project.
 3) Create a pytest fixture with (scope='session', autouse=True)
 to initialize the logger in main conftest.py of the project.
 
-
 i.e Add the following code in the project's conftest.py
 
 import pytest

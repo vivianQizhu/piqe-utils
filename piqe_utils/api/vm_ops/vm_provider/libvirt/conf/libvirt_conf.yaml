@@ -1,0 +1,6 @@
+libvirt_volume:
+    xml: 'disk.xml'
+    guestname: test
+    imageformat: qcow2
+    imagesize: 1
+    hddriver: virtio

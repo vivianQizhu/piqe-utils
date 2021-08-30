@@ -4,17 +4,20 @@ from piqe_utils.api.vm_ops.vm_resource.core import BaseVM   # pylint: disable=im
 
 class LibvirtVM(BaseVM):
     """
-    Define the object Domain
+    Define the object for a libvirt domain
     """
     def __init__(self, domain_name, conn):
+        """
+        :param domain_name: The name of the libvirt domain
+        :param conn: The libvirt connection object
+        """
         self.domain_name = domain_name
         self.conn = conn
-        self.dom = self.conn.lookupByName(domain_name)
-        self.info = self.dom.info()
-        self.domxml = self.dom.XMLDesc(0)
+        self.libvirt_domain = self.conn.lookupByName(self.domain_name)
 
-    def reboot(self):
-        pass
-
-    def graceful_shutdown(self):
-        pass
+    @property
+    def XMLDesc(self):
+        """
+        Get the real time xml description of libvirt domain
+        """
+        return self.libvirt_domain.XMLDesc()

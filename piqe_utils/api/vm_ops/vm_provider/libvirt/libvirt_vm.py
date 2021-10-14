@@ -35,6 +35,7 @@ class LibvirtVM(BaseVM):
         except libvirt.libvirtError as err:
             self.logger.error(f"API error message: {err.get_error_message()}")
         return ret
+
     def graceful_shutdown(self):
         """
         Gracefully shutdown the VM

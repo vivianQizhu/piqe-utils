@@ -29,6 +29,7 @@ class LibvirtVM(BaseVM):
     def reboot(self):
         """
         Reboot the VM
+        return: 0 in case of success and -1 in case of failure.
         """
         try:
             ret = self.libvirt_domain.reboot()
@@ -39,6 +40,7 @@ class LibvirtVM(BaseVM):
     def graceful_shutdown(self):
         """
         Gracefully shutdown the VM
+        return:0 in case of success and -1 in case of failure.
         """
         try:
             ret = self.libvirt_domain.destroyFlags(libvirt.VIR_DOMAIN_DESTROY_GRACEFUL)

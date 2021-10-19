@@ -24,16 +24,6 @@ def get_domain():
         return None
 
 
-def get_volume_params():
-    mod_name = 'libvirt_volume'
-    params = libvirt_utils.get_params(mod_name)
-    logger.info('Get params for module %s: %s' % (mod_name, str(params)))
-    return params
-
-@pytest.fixture(scope="session")
-def test_get_conn():
-    assert isinstance(get_conn(), libvirt.virConnect)
-
 @pytest.mark.libvirt
 def test_reboot_vm():
     domain = get_domain()

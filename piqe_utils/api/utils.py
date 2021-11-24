@@ -88,6 +88,16 @@ def get_output_remote(conn,cmd,timeout=60):
         return out_info,err_info
     return None,None
 
+
+def get_status_output_remote(conn, cmd, timeout=60):
+    """
+    Get the return status of the command together with the output
+    """
+    output = get_output_remote(conn, cmd, timeout)
+    status = get_output_remote(conn, 'echo $?')
+    return status, output
+
+
 def get_output_local(cmd,timeout=60):
     """
     Get cmd running on local output

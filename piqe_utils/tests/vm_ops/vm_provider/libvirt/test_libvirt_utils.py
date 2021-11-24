@@ -4,10 +4,13 @@ import pytest
 
 from piqe_utils import __loggername__
 from piqe_utils.api.logger import PiqeLogger
+from piqe_utils.api.utils import get_ssh_connection
 from piqe_utils.api.vm_ops.vm_provider.libvirt import libvirt_utils
 from piqe_utils.api.vm_ops.vm_provider.libvirt.libvirt_vm import LibvirtVM
 
 logger = PiqeLogger(__loggername__)
+remote_session = None
+# remote_session = get_ssh_connection(hostname='', username='', password='')
 
 
 def get_conn():
@@ -56,6 +59,6 @@ def test_dev_num():
 @pytest.mark.libvirt
 def test_create_image():
     disk = '/var/lib/libvirt/images/attacheddisk'
-    assert libvirt_utils.create_image(disk, 1)
+    assert libvirt_utils.create_image(disk, 1, session=remote_session)
     assert os.path.exists(disk)
-    assert libvirt_utils.clean_up(disk)
+    assert libvirt_utils.clean_up(disk, session=remote_session)

@@ -3,6 +3,7 @@ import yaml
 import libvirt
 
 from piqe_utils.api import process
+from piqe_utils.api import utils
 from piqe_utils import __loggername__
 from piqe_utils.api.logger import PiqeLogger
 
@@ -150,7 +151,8 @@ def dev_num(xmlstr, device, xml_prefix='</', xml_suffix='>'):
         return None
 
 
-def create_image(disk, seeksize, imageformat='raw', qcow2version='v3'):
+def create_image(disk, seeksize, imageformat='raw', qcow2version='v3',
+                 session=None):
     """
     Create a image file via qemu-img
 
@@ -159,6 +161,7 @@ def create_image(disk, seeksize, imageformat='raw', qcow2version='v3'):
     :param imageformat: The image format, any format supported by qemu-img
     :param qcow2version: The qcow2 version, will add "-o compat=1.1"
                          if it is 'v3'
+    :param session: remote ssh session, default None to process locally
     :return: True if qemu-img succeed, False otherwise
     """
 
@@ -171,13 +174,20 @@ def create_image(disk, seeksize, imageformat='raw', qcow2version='v3'):
     cmd = ("qemu-img create -f %s %s %s %sG" %
            (imageformat, qcow2_options, disk, seeksize))
     logger.info("cmd: %s" % cmd)
-    s, o = process.getstatusoutput(cmd, shell=True, ignore_status=True)
+    if session:
+        s, o = utils.get_status_output_remote(session, cmd, timeout=None)
+    else:
+        s, o = process.getstatusoutput(cmd, shell=True, ignore_status=True)
     if s != 0:
         logger.error(o)
         return False
     return True
 
 
-def clean_up(trash_list):
+def clean_up(trash_list, session=None):
     """Cleanup trash files"""
-    return process.getstatusoutput('rm -rf %s' % trash_list)[0] == 0
+    clean_cmd = 'rm -rf %s' % trash_list
+    if session:
+        return utils.get_status_output_remote(session, clean_cmd)[0] == 0
+    else:
+        return process.getstatusoutput(clean_cmd)[0] == 0

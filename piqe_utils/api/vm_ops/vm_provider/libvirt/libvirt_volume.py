@@ -6,25 +6,28 @@ import libvirt
 
 from piqe_utils import __loggername__
 from piqe_utils.api import process
+from piqe_utils.api import utils
 from piqe_utils.api.logger import PiqeLogger
 from piqe_utils.api.vm_ops.vm_resource.core import BaseVolume
 from . import xml_parser
 from . import libvirt_utils
 
 
-def backup_image(image_path):
+def backup_image(image_path, remote_session):
     """
     Backup image locally
 
     :param image_path: the path of the image to backup
+    :param remote_session: remote ssh session, default None for local cmd
     :return: The path of the backup file or None if failed
     """
     backup_path = '%s.backup' % image_path
     backup_cmd = 'cp %s %s' % (image_path, backup_path)
-    if process.getstatusoutput(backup_cmd)[0] == 0:
-        return backup_path
+    if remote_session:
+        status = utils.get_status_output_remote(backup_cmd, timeout=None)[0]
     else:
-        return None
+        status = process.getstatusoutput(backup_cmd)[0]
+    return backup_path if status == 0 else None
 
 
 class LibvirtVolume(BaseVolume):
@@ -34,11 +37,13 @@ class LibvirtVolume(BaseVolume):
     the disk image.
     """
 
-    def __init__(self, domain):
+    def __init__(self, domain, remote_session):
         """
         :param domain: the LibvirtVM object
+        :param remote_session: remote ssh session, default None for local cmd
         """
         self.domain = domain
+        self.remote_session = remote_session
         self.params = libvirt_utils.get_params(
             str(os.path.basename(__file__)).split('.', maxsplit=1)[0])
         self.hddriver = self.params['hddriver']
@@ -90,7 +95,8 @@ class LibvirtVolume(BaseVolume):
         self.xml_replace('DEV', devname)
         # Create image, qcow2version includes 'v3', 'v3_lazy_refcounts'
         if not libvirt_utils.create_image(self.disk, self.imagesize,
-                                          self.imageformat, self.qcow2version):
+                                          self.imageformat, self.qcow2version,
+                                          self.remote_session):
             self.logger.error("fail to create a image file")
 
     def attach_disk(self):
@@ -190,7 +196,7 @@ class LibvirtVolume(BaseVolume):
         image = disk['source']['attr']['file']
         backup_img = None
         if backup:
-            backup_img = backup_image(image)
+            backup_img = backup_image(image, self.remote_session)
         if rm_image:
             self.trash_files += ' %s' % image
         xml_disk = xml_par.get_disk_xml('disk', devname)
@@ -200,4 +206,4 @@ class LibvirtVolume(BaseVolume):
 
     def clean_up(self):
         """To clean up the trash files"""
-        return libvirt_utils.clean_up(self.trash_files)
+        return libvirt_utils.clean_up(self.trash_files, self.remote_session)

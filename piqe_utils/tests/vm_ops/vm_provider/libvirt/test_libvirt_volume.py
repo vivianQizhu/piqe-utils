@@ -1,5 +1,6 @@
 import pytest
 
+from piqe_utils.api.utils import get_ssh_connection
 from piqe_utils.api.vm_ops.vm_provider.libvirt import libvirt_utils
 from piqe_utils.api.vm_ops.vm_provider.libvirt.libvirt_vm import LibvirtVM
 from piqe_utils.api.vm_ops.vm_provider.libvirt.libvirt_volume import LibvirtVolume
@@ -12,8 +13,11 @@ logger = PiqeLogger(__loggername__)
 @pytest.fixture(scope="class")
 def volume_obj():
     conn = libvirt_utils.get_conn()
+    remote_session = None
+    # remote_session = get_ssh_connection(hostname='', username='', password='')
     try:
-        dom = LibvirtVM(conn.lookupByID(conn.listDomainsID()[0]).name(), conn)
+        dom = LibvirtVM(conn.lookupByID(conn.listDomainsID()[0]).name(),
+                        conn, remote_session=remote_session)
     except IndexError:
         logger.error('There is no active domain to be tested.')
         raise
